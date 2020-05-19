@@ -3,9 +3,8 @@
 
 use std::io;
 use std::str::FromStr;
-use sample::ring_buffer;
-use sample::Frame;
-use sample::frame::Stereo;
+
+mod effects;
 
 fn main() {
     // 1. open a client
@@ -28,17 +27,10 @@ fn main() {
 
     // 3. define process callback handler
     let sample_rate = client.sample_rate();
-    let frame_t = 1.0 / sample_rate as f32;
-
     let d = 100.0;
     let h = 200.0;
-    let r = ((h*h + (d*d/4.0)) as f32).sqrt();
-    let m = ((2.0 * r - d) / (343.0*frame_t)).round() as i64;
-    let g = d / (2.0 * r);
 
-    println!("frame_t: {3}, r: {0}, m: {1}, g: {2}", r, m, g, frame_t);
-
-    let mut delay_line = ring_buffer::Fixed::from(vec![Stereo::<f32>::equilibrium(); m as usize]);
+    let mut e = effects::Echo::new(d, h, sample_rate);
 
     let process = jack::ClosureProcessHandler::new(
         move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
@@ -54,9 +46,7 @@ fn main() {
             for ((l_in, r_in), (l_out, r_out)) in ins.zip(outs)  {
                 let in_sample = [*l_in, *r_in];
 
-                let d_out = delay_line.push(in_sample);
-
-                let res = in_sample.add_amp(d_out.scale_amp(g));
+                let res = e.tick(in_sample);
 
                 *l_out = res[0];
                 *r_out = res[1];
