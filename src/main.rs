@@ -1,8 +1,3 @@
-//! Sine wave generator with frequency configuration exposed through standard
-//! input.
-
-use std::io;
-use std::str::FromStr;
 use text_io::scan;
 use crossbeam_channel::bounded;
 

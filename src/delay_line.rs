@@ -32,7 +32,6 @@ where
     }
 
     /// Borrows the item at the given index relative to the input
-    #[inline]
     pub fn tap(&self, index: usize) -> S::Element {
         assert!(index + 1 < self.capacitiy());
 
@@ -58,14 +57,6 @@ where
         }
     }
 
-    /// Creates a `Fixed` ring buffer from its starting index and data buffer type.
-    ///
-    /// **Panic!**s if the given index is out of range of the given data slice.
-    ///
-    /// **Note:** This method should only be necessary if you require specifying a first index.
-    /// Please see the `ring_buffer::Fixed::from` function for a simpler constructor that does not
-    /// require a `first` index.
-    #[inline]
     pub fn new(data: S, delay: usize) -> Self {
         assert!(delay < data.slice().len());
 
