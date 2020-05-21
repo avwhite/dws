@@ -46,6 +46,7 @@ dependencies = [
  "crossbeam-channel",
  "jack",
  "sample",
+ "text_io",
 ]
 
 [[package]]
@@ -115,6 +116,12 @@ name = "sample"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc0966ad788ec7289562643e05c611b7853e0618b7f9306aafd2fc727abfe168"
+
+[[package]]
+name = "text_io"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cb170b4f47dc48835fbc56259c12d8963e542b05a24be2e3a1f5a6c320fd2d4"
 
 [[package]]
 name = "winapi"

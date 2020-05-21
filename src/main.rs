@@ -3,7 +3,10 @@
 
 use std::io;
 use std::str::FromStr;
+use text_io::scan;
+use crossbeam_channel::bounded;
 
+mod delay_line;
 mod effects;
 
 fn main() {
@@ -27,10 +30,12 @@ fn main() {
 
     // 3. define process callback handler
     let sample_rate = client.sample_rate();
-    let d = 100.0;
-    let h = 200.0;
+    let d = 10.0;
+    let h = 20.0;
 
-    let mut e = effects::Echo::new(d, h, sample_rate);
+    let (tx, rx) = bounded::<effects::EchoParameters>(1_000_000);
+
+    let mut e = effects::Echo::new(d, h, sample_rate, 64000);
 
     let process = jack::ClosureProcessHandler::new(
         move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
@@ -42,6 +47,10 @@ fn main() {
 
             let ins = in_a_p.iter().zip(in_b_p);
             let outs = out_a_p.iter_mut().zip(out_b_p);
+
+            while let Ok(f) = rx.try_recv() {
+                e.set_params(f);
+            }
 
             for ((l_in, r_in), (l_out, r_out)) in ins.zip(outs)  {
                 let in_sample = [*l_in, *r_in];
@@ -61,24 +70,28 @@ fn main() {
     // processing starts here
 
     // 5. wait or do some processing while your handler is running in real time.
-    println!("Enter an integer value to change the frequency of the sine wave.");
-    while let Some(_) = read_freq() {
-        
+    println!("Enter d and h values");
+    loop {
+        let d: f32;
+        let h: f32;
+        scan!("{} {}\n", d, h);
+
+        if d < 0.1 && h < 0.1 {
+            break;
+        }
+
+        println!("read d: {} and h: {}", d, h);
+
+        let params = effects::EchoParameters::from_distances(d, h, sample_rate);
+
+        println!("That gives params: g: {}, m: {}", params.attenuation, params.length);
+
+
+        tx.send(effects::EchoParameters::from_distances(d, h, sample_rate)).unwrap();
     }
 
     // 6. Optional deactivate. Not required since active_client will deactivate on
     // drop, though explicit deactivate may help you identify errors in
     // deactivate.
     active_client.deactivate().unwrap();
-}
-
-/// Attempt to read a frequency from standard in. Will block until there is
-/// user input. `None` is returned if there was an error reading from standard
-/// in, or the retrieved string wasn't a compatible u16 integer.
-fn read_freq() -> Option<f64> {
-    let mut user_input = String::new();
-    match io::stdin().read_line(&mut user_input) {
-        Ok(_) => u16::from_str(&user_input.trim()).ok().map(|n| n as f64),
-        Err(_) => None,
-    }
 }
