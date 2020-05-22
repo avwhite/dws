@@ -1,4 +1,3 @@
-use sample::ring_buffer;
 use sample::Frame;
 use sample::Sample;
 
