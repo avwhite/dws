@@ -61,3 +61,44 @@ impl<T: Frame> Echo<T>
         out.scale_amp(self.params.attenuation.to_sample()).add_amp(signed_in)
     }
 }
+
+pub struct FlangeParameters
+{
+    frame_time: f64,
+    rate: f64,
+    amount: f64,
+    depth: f64
+}
+
+pub struct Flange<T>
+{
+    params : FlangeParameters,
+    delay_line: delay_line::DelayLineFracLin<Vec<T>>,
+    time: f64,
+}
+
+impl<T: Frame> Flange<T>
+{
+    pub fn new(rate: f64, amount: f64, depth: f64, sample_rate: usize) -> Self {
+        Flange {
+            params: FlangeParameters {
+                frame_time : 1.0 / sample_rate as f64,
+                rate: rate,
+                amount: amount * sample_rate as f64,
+                depth: depth,
+            },
+            delay_line: delay_line::DelayLineFracLin::new(vec![T::equilibrium(); 100000], T::equilibrium(), 1000.0),
+            time: 0.0,
+        }
+    }
+
+    pub fn tick(self: &mut Self, in_frame: T) -> T {
+        self.time += self.params.frame_time;
+        let sine = (self.params.rate * self.time * 2.0 * std::f64::consts::PI).sin(); //Would a look up table give better performance?
+        self.delay_line.set_delay(self.params.amount * sine + self.params.amount + 0.0005);
+        let a = self.delay_line.tick(in_frame);
+        let out = a.scale_amp(self.params.depth.to_sample()).add_amp(in_frame.to_signed_frame());
+
+        return out;
+    }
+}

@@ -85,7 +85,6 @@ where
     T::Element : Frame
 {
     pub fn new(data: T, fractional_frame : T::Element, delay: f64) -> Self {
-        assert!(delay > 0.0);
         assert!(data.slice().len() > 0);
 
         let integer_part = delay.trunc() as usize;
@@ -111,7 +110,6 @@ where
 
     pub fn set_delay(&mut self, delay: f64)
     {
-        assert!(delay > 0.0);
 
         let integer_part = delay.trunc() as usize;
         let fractional_part = delay.fract();

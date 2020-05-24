@@ -30,7 +30,8 @@ fn main() {
 
     let (tx, rx) = bounded::<effects::EchoParameters>(1_000_000);
 
-    let mut e = effects::Echo::new(d, h, sample_rate, 64000);
+    //let mut e = effects::Echo::new(d, h, sample_rate, 64000);
+    let mut e = effects::Flange::new(2.0, 0.005, 0.8, sample_rate);
 
     let process = jack::ClosureProcessHandler::new(
         move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
@@ -44,7 +45,7 @@ fn main() {
             let outs = out_a_p.iter_mut().zip(out_b_p);
 
             while let Ok(f) = rx.try_recv() {
-                e.set_params(f);
+                //e.set_params(f);
             }
 
             for ((l_in, r_in), (l_out, r_out)) in ins.zip(outs)  {
