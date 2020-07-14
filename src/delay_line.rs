@@ -68,7 +68,7 @@ where
 
     pub fn set_delay(&mut self, delay: usize)
     {
-        assert!(delay < self.capacity());
+        assert!(delay <= self.capacity());
 
         if delay > self.in_point {
             self.out_point = self.data.slice().len() - (delay - self.in_point);
@@ -80,13 +80,13 @@ where
 
     pub fn new(data: S, delay: usize) -> Self {
         assert!(data.slice().len() > 1);
-        assert!(delay < data.slice().len() - 1);
+        assert!(delay <= data.slice().len() - 1);
 
         DelayLine { 
             in_point: 0,
             out_point: (data.slice().len() - delay) % data.slice().len(),
             data: data,
-         }
+        }
     }
 }
 
@@ -164,7 +164,7 @@ mod tests
 
         let mut d = DelayLine::new(vec![0; 100], delay);
 
-        for n in 0..1000
+        for n in 0..12345
         {
             let v = d.tick(n);
 
@@ -179,5 +179,52 @@ mod tests
                 assert_eq!(v, 0);
             }
         }
+    }
+
+    #[test]
+    pub fn fixed_integer_taps()
+    {
+        let delay = 5;
+        let mut d = DelayLine::new(vec![0; 100], delay);
+
+        for n in 0..12345
+        {
+            d.tick(n);
+
+            let taps = std::cmp::min(n + 1, delay);
+            for i in 0..taps
+            {
+                let t = d.tap(i);
+                assert_eq!(t, n - i);
+            }
+        }
+    }
+
+    #[test]
+    pub fn integer_max_delay1()
+    {
+        DelayLine::new(vec![0; 100], 99);
+    }
+
+    #[test]
+    pub fn integer_max_delay2()
+    {
+        let mut d = DelayLine::new(vec![0; 100], 95);
+        d.set_delay(99);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn integer_delay_too_big1()
+    {
+        DelayLine::new(vec![0; 100], 100);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn integer_delay_too_big2()
+    {
+        let mut d = DelayLine::new(vec![0; 100], 5);
+        d.set_delay(100);
     }
 }
