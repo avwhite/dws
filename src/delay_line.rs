@@ -1,7 +1,7 @@
-use dasp::frame::Frame;
-use dasp_ring_buffer::*;
-use dasp::Sample;
 use approx::relative_eq;
+use dasp::frame::Frame;
+use dasp::Sample;
+use dasp_ring_buffer::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct DelayLine<S> {
@@ -133,7 +133,7 @@ where
             //if the delay is exactly equal to the maximum delay, we cannot tap at one past the output
             //but in that case the fractional part is zero, so the fractional output does not matter anyway
             //and we can just set it to anything
-            T::Element::EQUILIBRIUM 
+            T::Element::EQUILIBRIUM
         } else {
             self.delay_line.tap_output(1)
         };
@@ -324,7 +324,7 @@ mod tests {
                 assert_relative_eq!(v, 0.0);
             }
             //In between these two cases we are interpolating between initial values and values we entered.
-            //not checking these for now.
+            //not checking these for now.q
         }
     }
 
