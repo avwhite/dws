@@ -9,12 +9,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
       - name: Install stable rust
         uses: actions-rs/toolchain@v1
         with:
             toolchain: stable
             override: true
             components: rustfmt, clippy
+            
+      - name: Install lib jack
+        run: sudo apt-get install libjack-dev
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
