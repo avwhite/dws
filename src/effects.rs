@@ -87,7 +87,7 @@ impl<T: Frame> Flange<T> {
         self.time += self.params.frame_time;
         let sine = (self.params.rate * self.time * 2.0 * std::f64::consts::PI).sin(); //Would a look up table give better performance?
         self.delay_line
-            .set_delay(self.params.amount * sine + self.params.amount + 0.0005 + 2.0);
+            .set_delay(self.params.amount * sine + self.params.amount + 0.0005);
         let a = self.delay_line.tick(in_frame);
         let out = a
             .scale_amp(self.params.depth.to_sample())

@@ -31,7 +31,7 @@ fn main() {
     let (tx, rx) = bounded::<effects::EchoParameters>(1_000_000);
 
     //let mut e = effects::Echo::new(d, h, sample_rate, 64000);
-    let mut e = effects::Flange::new(2.0, 0.005, 0.8, sample_rate);
+    let mut e = effects::Flange::new(6.0, 0.001, 0.3, sample_rate);
 
     let process = jack::ClosureProcessHandler::new(
         move |_: &jack::Client, ps: &jack::ProcessScope| -> jack::Control {
