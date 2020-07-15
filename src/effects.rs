@@ -1,5 +1,5 @@
-use sample::Frame;
-use sample::Sample;
+use dasp::Frame;
+use dasp::Sample;
 
 use crate::delay_line;
 
@@ -35,7 +35,7 @@ impl<T: Frame> Echo<T> {
         assert!(params.length < capacity);
 
         Echo {
-            delay_line: delay_line::DelayLine::new(vec![T::equilibrium(); capacity], params.length),
+            delay_line: delay_line::DelayLine::new(vec![T::EQUILIBRIUM; capacity], params.length),
             params: params,
         }
     }
@@ -78,7 +78,7 @@ impl<T: Frame> Flange<T> {
                 amount: amount * sample_rate as f64,
                 depth: depth,
             },
-            delay_line: delay_line::DelayLineFracLin::new(vec![T::equilibrium(); 1000000], 1000.0),
+            delay_line: delay_line::DelayLineFracLin::new(vec![T::EQUILIBRIUM; 1000000], 1000.0),
             time: 0.0,
         }
     }

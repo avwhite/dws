@@ -1,6 +1,6 @@
-use sample::frame::Frame;
-use sample::ring_buffer::*;
-use sample::Sample;
+use dasp::frame::Frame;
+use dasp_ring_buffer::*;
+use dasp::Sample;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct DelayLine<S> {
