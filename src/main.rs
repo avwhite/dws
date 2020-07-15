@@ -1,5 +1,5 @@
-use text_io::scan;
 use crossbeam_channel::bounded;
+use text_io::scan;
 
 mod delay_line;
 mod effects;
@@ -48,7 +48,7 @@ fn main() {
                 //e.set_params(f);
             }
 
-            for ((l_in, r_in), (l_out, r_out)) in ins.zip(outs)  {
+            for ((l_in, r_in), (l_out, r_out)) in ins.zip(outs) {
                 let in_sample = [*l_in, *r_in];
 
                 let res = e.tick(in_sample);
@@ -80,10 +80,13 @@ fn main() {
 
         let params = effects::EchoParameters::from_distances(d, h, sample_rate);
 
-        println!("That gives params: g: {}, m: {}", params.attenuation, params.length);
+        println!(
+            "That gives params: g: {}, m: {}",
+            params.attenuation, params.length
+        );
 
-
-        tx.send(effects::EchoParameters::from_distances(d, h, sample_rate)).unwrap();
+        tx.send(effects::EchoParameters::from_distances(d, h, sample_rate))
+            .unwrap();
     }
 
     // 6. Optional deactivate. Not required since active_client will deactivate on

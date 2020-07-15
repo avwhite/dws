@@ -1,5 +1,5 @@
-use sample::ring_buffer::*;
 use sample::frame::Frame;
+use sample::ring_buffer::*;
 use sample::Sample;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -12,7 +12,7 @@ pub struct DelayLine<S> {
 impl<S> DelayLine<S>
 where
     S: Slice,
-    S::Element : Copy
+    S::Element: Copy,
 {
     /// The capacity of the delay line (maximum possible delay)
     #[inline]
@@ -43,8 +43,7 @@ where
 
         if index + 1 > self.in_point {
             wrapped_index = self.data.slice().len() - (index + 1 - self.in_point);
-        }
-        else {
+        } else {
             wrapped_index = self.in_point - (index + 1);
         }
 
@@ -54,8 +53,7 @@ where
     pub fn get_delay(&self) -> usize {
         if self.in_point >= self.out_point {
             return self.in_point - self.out_point;
-        }
-        else {
+        } else {
             return self.data.slice().len() - (self.out_point - self.in_point);
         }
     }
@@ -66,14 +64,12 @@ where
         self.tap(self.get_delay() + index)
     }
 
-    pub fn set_delay(&mut self, delay: usize)
-    {
+    pub fn set_delay(&mut self, delay: usize) {
         assert!(delay <= self.capacity());
 
         if delay > self.in_point {
             self.out_point = self.data.slice().len() - (delay - self.in_point);
-        }
-        else {
+        } else {
             self.out_point = self.in_point - delay;
         }
     }
@@ -82,7 +78,7 @@ where
         assert!(data.slice().len() > 1);
         assert!(delay <= data.slice().len() - 1);
 
-        DelayLine { 
+        DelayLine {
             in_point: 0,
             out_point: (data.slice().len() - delay) % data.slice().len(),
             data: data,
@@ -92,7 +88,7 @@ where
 
 pub struct DelayLineFracLin<T>
 where
-    T : Slice
+    T: Slice,
 {
     delay_line: DelayLine<T>,
     fractional_delay_part: f64,
@@ -100,8 +96,8 @@ where
 
 impl<T> DelayLineFracLin<T>
 where
-    T : Slice,
-    T::Element : Frame
+    T: Slice,
+    T::Element: Frame,
 {
     pub fn new(data: T, delay: f64) -> Self {
         assert!(data.slice().len() > 0);
@@ -111,16 +107,17 @@ where
 
         DelayLineFracLin {
             delay_line: DelayLine::new(data, integer_part),
-            fractional_delay_part : fractional_part
+            fractional_delay_part: fractional_part,
         }
     }
 
     pub fn tick(&mut self, item: T::Element) -> T::Element
     where
-        T: SliceMut
+        T: SliceMut,
     {
         let out_integer = self.delay_line.tick(item);
-        let out_integer_part = out_integer.scale_amp((1.0 - self.fractional_delay_part).to_sample());
+        let out_integer_part =
+            out_integer.scale_amp((1.0 - self.fractional_delay_part).to_sample());
 
         let out_frac = self.delay_line.tap_output(1);
         let out_frac_part = out_frac.scale_amp(self.fractional_delay_part.to_sample());
@@ -128,9 +125,7 @@ where
         out_integer_part.add_amp(out_frac_part.to_signed_frame())
     }
 
-    pub fn set_delay(&mut self, delay: f64)
-    {
-
+    pub fn set_delay(&mut self, delay: f64) {
         let integer_part = delay.trunc() as usize;
         let fractional_part = delay.fract();
 
@@ -140,17 +135,14 @@ where
 }
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
     use super::*;
 
     #[test]
-    pub fn zero_integer_delay()
-    {
+    pub fn zero_integer_delay() {
         let mut d = DelayLine::new(vec![0; 100], 0);
 
-        for n in 0..1000
-        {
+        for n in 0..1000 {
             let v = d.tick(n);
 
             assert_eq!(v, n);
@@ -158,18 +150,15 @@ mod tests
     }
 
     #[test]
-    pub fn fixed_integer_delay()
-    {
+    pub fn fixed_integer_delay() {
         let delay = 5;
 
         let mut d = DelayLine::new(vec![0; 100], delay);
 
-        for n in 0..12345
-        {
+        for n in 0..12345 {
             let v = d.tick(n);
 
-            if n >= delay
-            {
+            if n >= delay {
                 //after the transient phase we expect values we previously put in
                 assert_eq!(v, n - delay);
             }
@@ -182,18 +171,15 @@ mod tests
     }
 
     #[test]
-    pub fn fixed_integer_taps()
-    {
+    pub fn fixed_integer_taps() {
         let delay = 5;
         let mut d = DelayLine::new(vec![0; 100], delay);
 
-        for n in 0..12345
-        {
+        for n in 0..12345 {
             d.tick(n);
 
             let taps = std::cmp::min(n + 1, delay);
-            for i in 0..taps
-            {
+            for i in 0..taps {
                 let t = d.tap(i);
                 assert_eq!(t, n - i);
             }
@@ -201,29 +187,25 @@ mod tests
     }
 
     #[test]
-    pub fn integer_max_delay1()
-    {
+    pub fn integer_max_delay1() {
         DelayLine::new(vec![0; 100], 99);
     }
 
     #[test]
-    pub fn integer_max_delay2()
-    {
+    pub fn integer_max_delay2() {
         let mut d = DelayLine::new(vec![0; 100], 95);
         d.set_delay(99);
     }
 
     #[test]
     #[should_panic]
-    pub fn integer_delay_too_big1()
-    {
+    pub fn integer_delay_too_big1() {
         DelayLine::new(vec![0; 100], 100);
     }
 
     #[test]
     #[should_panic]
-    pub fn integer_delay_too_big2()
-    {
+    pub fn integer_delay_too_big2() {
         let mut d = DelayLine::new(vec![0; 100], 5);
         d.set_delay(100);
     }
