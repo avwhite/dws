@@ -161,9 +161,32 @@ mod tests {
             if n >= delay {
                 //after the transient phase we expect values we previously put in
                 assert_eq!(v, n - delay);
+            } else {
+                //before it we expect 0, which is what the delay line is initialized with
+                assert_eq!(v, 0);
             }
-            else
-            {
+        }
+    }
+
+    #[test]
+    pub fn variable_integer_delay() {
+        let mut delay = 5;
+
+        let mut d = DelayLine::new(vec![0; 100], delay);
+
+        for n in 0..123456 {
+            if n % 12 == 0 {
+                //Every 12th iteration we change the delay
+                delay = (delay + 3) % 13;
+                d.set_delay(delay);
+            }
+
+            let v = d.tick(n);
+
+            if n >= delay {
+                //after the transient phase we expect values we previously put in
+                assert_eq!(v, n - delay);
+            } else {
                 //before it we expect 0, which is what the delay line is initialized with
                 assert_eq!(v, 0);
             }
