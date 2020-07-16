@@ -16,9 +16,6 @@ jobs:
             toolchain: stable
             override: true
             components: rustfmt, clippy
-            
-      - name: Install lib jack
-        run: sudo apt-get install libjack-dev
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1

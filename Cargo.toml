@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["avh"]
 edition = "2018"
 
+[lib]
+name = "dws"
+crate-type = ["cdylib"]
+
 [profile.dev]
 opt-level = 3
 
@@ -11,7 +15,7 @@ opt-level = 3
 
 [dependencies]
 
-jack = "0.6.2"
+vst = "0.2.0"
 rand = "0.7.3"
 dasp = "0.11.0"
 dasp_ring_buffer = "0.11.0"
