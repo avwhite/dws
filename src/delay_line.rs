@@ -1,4 +1,3 @@
-use approx::relative_eq;
 use dasp::frame::Frame;
 use dasp::Sample;
 use dasp_ring_buffer::*;
