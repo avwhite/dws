@@ -182,8 +182,9 @@ impl Plugin for VstPluckedString {
                     // https://www.midi.org/specifications/item/table-1-summary-of-midi-message
                     match ev.data[0] {
                         // if note on, increment our counter
-                        144 => self.plucked_string.note_on(),
-
+                        144 => self.plucked_string.note_on(
+                            440.0 * (1.0594630943592953 as f64).powf(ev.data[1] as f64 - 69.0),
+                        ),
                         // if note off, nothing
                         128 => (),
                         _ => (),
