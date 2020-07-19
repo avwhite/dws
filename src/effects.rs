@@ -96,18 +96,15 @@ impl<T: Frame> Flange<T> {
         return out;
     }
 
-    pub fn set_rate(&mut self, rate : f64) 
-    {
+    pub fn set_rate(&mut self, rate: f64) {
         self.params.rate = rate;
     }
 
-    pub fn set_amount(&mut self, amount : f64) 
-    {
+    pub fn set_amount(&mut self, amount: f64) {
         self.params.amount = amount / self.params.frame_time;
     }
 
-    pub fn set_depth(&mut self, depth : f64) 
-    {
+    pub fn set_depth(&mut self, depth: f64) {
         self.params.depth = depth;
     }
 }

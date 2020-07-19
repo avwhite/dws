@@ -4,13 +4,12 @@ pub mod effects;
 use std::sync::Arc;
 
 use vst::buffer::AudioBuffer;
-use vst::util::ParameterTransfer;
 use vst::plugin::{Info, Plugin, PluginParameters};
 use vst::plugin_main;
-
+use vst::util::ParameterTransfer;
 
 struct DwsParams {
-    param_transfer: ParameterTransfer
+    param_transfer: ParameterTransfer,
 }
 
 impl DwsParams {
@@ -19,7 +18,7 @@ impl DwsParams {
             0 => value / 10.0,
             1 => value / 0.01,
             2 => value,
-            _ => 0.0
+            _ => 0.0,
         }
     }
 
@@ -28,7 +27,7 @@ impl DwsParams {
             0 => value * 10.0,
             1 => value * 0.01,
             2 => value,
-            _ => 0.0
+            _ => 0.0,
         }
     }
 
@@ -42,21 +41,21 @@ impl DwsParams {
 }
 
 impl PluginParameters for DwsParams {
-    fn get_parameter_name(&self, index: i32) -> String{
+    fn get_parameter_name(&self, index: i32) -> String {
         match index {
             0 => "rate".to_string(),
             1 => "amount".to_string(),
             2 => "depth".to_string(),
-            _ => "computer says no".to_string()
+            _ => "computer says no".to_string(),
         }
     }
 
-    fn get_parameter_label(&self, index: i32) -> String{
+    fn get_parameter_label(&self, index: i32) -> String {
         match index {
             0 => "Hz".to_string(),
             1 => "s".to_string(),
             2 => "".to_string(),
-            _ => "computer says no".to_string()
+            _ => "computer says no".to_string(),
         }
     }
 
@@ -82,7 +81,9 @@ impl Default for Dws {
     fn default() -> Dws {
         Dws {
             flange: effects::Flange::new(5.0, 0.001, 0.3, 48000),
-            params: std::sync::Arc::new( DwsParams { param_transfer: ParameterTransfer::new(3) } ),
+            params: std::sync::Arc::new(DwsParams {
+                param_transfer: ParameterTransfer::new(3),
+            }),
         }
     }
 }
@@ -108,8 +109,8 @@ impl Plugin for Dws {
         for (index, value) in self.params.param_transfer.iterate(true) {
             match index {
                 0 => self.flange.set_rate(value as f64),
-                1 => self.flange.set_amount(value as f64), 
-                2 => self.flange.set_depth(value as f64), 
+                1 => self.flange.set_amount(value as f64),
+                2 => self.flange.set_depth(value as f64),
                 _ => {}
             }
         }
