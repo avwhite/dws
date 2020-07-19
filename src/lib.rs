@@ -1,10 +1,13 @@
 pub mod delay_line;
 pub mod effects;
+pub mod instruments;
 
 use std::sync::Arc;
 
+use vst::api::Events;
 use vst::buffer::AudioBuffer;
-use vst::plugin::{Info, Plugin, PluginParameters};
+use vst::event::Event;
+use vst::plugin::{Category, Info, Plugin, PluginParameters};
 use vst::plugin_main;
 use vst::util::ParameterTransfer;
 
@@ -131,4 +134,67 @@ impl Plugin for Dws {
     }
 }
 
-plugin_main!(Dws); // Important!
+struct VstPluckedString {
+    plucked_string: instruments::PluckedString<f32>,
+}
+
+impl Default for VstPluckedString {
+    fn default() -> VstPluckedString {
+        VstPluckedString {
+            plucked_string: instruments::PluckedString::new(),
+        }
+    }
+}
+
+impl Plugin for VstPluckedString {
+    fn get_info(&self) -> Info {
+        Info {
+            name: "pluced_string".to_string(),
+            unique_id: 847123, // Used by hosts to differentiate between plugins.
+            inputs: 0,
+            outputs: 1,
+            category: Category::Synth,
+
+            ..Default::default()
+        }
+    }
+
+    fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
+        let (_, mut outputs) = buffer.split();
+
+        let output = outputs.get_mut(0).into_iter();
+
+        for o in output {
+            *o = self.plucked_string.tick()[0];
+        }
+    }
+
+    fn process_events(&mut self, events: &Events) {
+        // Some events aren't MIDI events - so let's do a match
+        // to make sure we only get MIDI, since that's all we care about.
+        for event in events.events() {
+            match event {
+                Event::Midi(ev) => {
+                    // Check if it's a noteon or noteoff event.
+                    // This is difficult to explain without knowing how the MIDI standard works.
+                    // Basically, the first byte of data tells us if this signal is a note on event
+                    // or a note off event.  You can read more about that here:
+                    // https://www.midi.org/specifications/item/table-1-summary-of-midi-message
+                    match ev.data[0] {
+                        // if note on, increment our counter
+                        144 => self.plucked_string.note_on(),
+
+                        // if note off, nothing
+                        128 => (),
+                        _ => (),
+                    }
+                    // if we cared about the pitch of the note, it's stored in `ev.data[1]`.
+                }
+                // We don't care if we get any other type of event
+                _ => (),
+            }
+        }
+    }
+}
+
+plugin_main!(VstPluckedString);

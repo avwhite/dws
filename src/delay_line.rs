@@ -142,6 +142,10 @@ where
         out_integer_part.add_amp(out_frac_part.to_signed_frame())
     }
 
+    pub fn tap_output(&self) -> T::Element {
+        self.delay_line.tap_output(0)
+    }
+
     pub fn set_delay(&mut self, delay: f64) {
         let integer_part = delay.trunc() as usize;
         let fractional_part = delay.fract();

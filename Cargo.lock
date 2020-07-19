@@ -181,6 +181,7 @@ dependencies = [
  "crossbeam-channel",
  "dasp",
  "dasp_ring_buffer",
+ "dasp_signal",
  "rand",
  "text_io",
  "vst",
