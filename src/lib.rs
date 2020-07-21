@@ -1,5 +1,6 @@
 pub mod delay_line;
 pub mod effects;
+pub mod filter;
 pub mod instruments;
 
 use std::sync::Arc;
