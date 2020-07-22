@@ -137,12 +137,16 @@ impl Plugin for Dws {
 
 struct VstPluckedString {
     plucked_string: instruments::PluckedString<f32>,
+    params: Arc<PluckedStringParams>,
 }
 
 impl Default for VstPluckedString {
     fn default() -> VstPluckedString {
         VstPluckedString {
             plucked_string: instruments::PluckedString::new(),
+            params: std::sync::Arc::new(PluckedStringParams {
+                param_transfer: ParameterTransfer::new(2),
+            }),
         }
     }
 }
@@ -155,12 +159,25 @@ impl Plugin for VstPluckedString {
             inputs: 0,
             outputs: 1,
             category: Category::Synth,
+            parameters: 2,
 
             ..Default::default()
         }
     }
 
+    fn get_parameter_object(&mut self) -> Arc<dyn PluginParameters> {
+        self.params.clone()
+    }
+
     fn process(&mut self, buffer: &mut AudioBuffer<f32>) {
+        for (index, value) in self.params.param_transfer.iterate(true) {
+            match index {
+                0 => self.plucked_string.sustain = value as f64,
+                1 => self.plucked_string.brightness = value as f64,
+                _ => {}
+            }
+        }
+
         let (_, mut outputs) = buffer.split();
 
         let output = outputs.get_mut(0).into_iter();
@@ -196,6 +213,69 @@ impl Plugin for VstPluckedString {
                 _ => (),
             }
         }
+    }
+}
+
+struct PluckedStringParams {
+    param_transfer: ParameterTransfer,
+}
+
+impl PluckedStringParams {
+    fn normalize_parameter(index: i32, value: f32) -> f32 {
+        match index {
+            0 => value / 10.0,
+            1 => value,
+            _ => 0.0,
+        }
+    }
+
+    fn denormalize_parameter(index: i32, value: f32) -> f32 {
+        match index {
+            0 => value * 10.0,
+            1 => value,
+            _ => 0.0,
+        }
+    }
+
+    fn get_denorm_parameter(&self, index: i32) -> f32 {
+        self.param_transfer.get_parameter(index as usize)
+    }
+
+    fn set_denorm_parameter(&self, index: i32, value: f32) {
+        self.param_transfer.set_parameter(index as usize, value);
+    }
+}
+
+impl PluginParameters for PluckedStringParams {
+    fn get_parameter_name(&self, index: i32) -> String {
+        match index {
+            0 => "sustain".to_string(),
+            1 => "brightness".to_string(),
+            _ => "computer says no".to_string(),
+        }
+    }
+
+    fn get_parameter_label(&self, index: i32) -> String {
+        match index {
+            0 => "s".to_string(),
+            1 => "".to_string(),
+            _ => "computer says no".to_string(),
+        }
+    }
+
+    fn get_parameter(&self, index: i32) -> f32 {
+        PluckedStringParams::normalize_parameter(index, self.get_denorm_parameter(index))
+    }
+
+    fn get_parameter_text(&self, index: i32) -> String {
+        format!("{number:.3}", number = self.get_denorm_parameter(index))
+    }
+
+    fn set_parameter(&self, index: i32, value: f32) {
+        self.set_denorm_parameter(
+            index,
+            PluckedStringParams::denormalize_parameter(index, value),
+        );
     }
 }
 
